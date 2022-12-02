@@ -15,6 +15,7 @@ extra-doc-files:    CHANGELOG.md
 common common-options
   build-depends:       base >=4.16.0.0 && <5,
                        text >= 2       && <3,
+                       attoparsec,
                        filepath,
   ghc-options:         -Wall
                        -Wcompat
@@ -32,6 +33,10 @@ common common-options
 
 executable day1
     import:           common-options
-    build-depends:    attoparsec
     main-is:          Day1.hs
     hs-source-dirs:   day1
+
+executable day2
+    import:           common-options
+    main-is:          Day2.hs
+    hs-source-dirs:   day2
