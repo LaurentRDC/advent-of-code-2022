@@ -40,3 +40,9 @@ executable day2
     import:           common-options
     main-is:          Day2.hs
     hs-source-dirs:   day2
+
+executable day3
+    import:           common-options
+    build-depends:    containers
+    main-is:          Day3.hs
+    hs-source-dirs:   day3
