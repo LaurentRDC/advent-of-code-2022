@@ -52,3 +52,9 @@ executable day4
     build-depends:    containers
     main-is:          Day4.hs
     hs-source-dirs:   day4
+
+executable day5
+    import:           common-options
+    build-depends:    containers
+    main-is:          Day5.hs
+    hs-source-dirs:   day5
