@@ -16,6 +16,7 @@ common common-options
   build-depends:       base >=4.16.0.0 && <5,
                        text >= 2       && <3,
                        attoparsec,
+                       containers,
                        filepath,
   ghc-options:         -Wall
                        -Wcompat
@@ -43,18 +44,20 @@ executable day2
 
 executable day3
     import:           common-options
-    build-depends:    containers
     main-is:          Day3.hs
     hs-source-dirs:   day3
 
 executable day4
     import:           common-options
-    build-depends:    containers
     main-is:          Day4.hs
     hs-source-dirs:   day4
 
 executable day5
     import:           common-options
-    build-depends:    containers
     main-is:          Day5.hs
     hs-source-dirs:   day5
+
+executable day6
+    import:           common-options
+    main-is:          Day6.hs
+    hs-source-dirs:   day6
