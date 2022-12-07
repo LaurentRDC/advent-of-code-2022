@@ -61,3 +61,9 @@ executable day6
     import:           common-options
     main-is:          Day6.hs
     hs-source-dirs:   day6
+
+executable day7
+    import:           common-options
+    build-depends:    mtl, filepath
+    main-is:          Day7.hs
+    hs-source-dirs:   day7
