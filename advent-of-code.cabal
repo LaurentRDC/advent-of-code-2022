@@ -73,3 +73,9 @@ executable day8
     build-depends:    vector
     main-is:          Day8.hs
     hs-source-dirs:   day8
+
+executable day9
+    import:           common-options
+    build-depends:    mtl
+    main-is:          Day9.hs
+    hs-source-dirs:   day9
