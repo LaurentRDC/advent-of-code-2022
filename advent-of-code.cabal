@@ -90,3 +90,8 @@ executable day11
     build-depends:    mtl
     main-is:          Day11.hs
     hs-source-dirs:   day11
+
+executable day12
+    import:           common-options
+    main-is:          Day12.hs
+    hs-source-dirs:   day12
