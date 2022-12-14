@@ -100,3 +100,9 @@ executable day13
     import:           common-options
     main-is:          Day13.hs
     hs-source-dirs:   day13
+
+executable day14
+    import:           common-options
+    build-depends:    mtl
+    main-is:          Day14.hs
+    hs-source-dirs:   day14
