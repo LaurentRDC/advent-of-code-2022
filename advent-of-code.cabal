@@ -126,3 +126,8 @@ executable day18
     import:           common-options
     main-is:          Day18.hs
     hs-source-dirs:   day18
+
+executable day19
+    import:           common-options
+    main-is:          Day19.hs
+    hs-source-dirs:   day19
