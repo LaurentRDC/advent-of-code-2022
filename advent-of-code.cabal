@@ -137,3 +137,8 @@ executable day20
     main-is:          Day20.hs
     hs-source-dirs:   day20
     build-depends:    vector
+
+executable day21
+    import:           common-options
+    main-is:          Day21.hs
+    hs-source-dirs:   day21
