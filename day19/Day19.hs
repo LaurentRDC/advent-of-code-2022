@@ -1,18 +1,16 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE StrictData        #-}
 import Control.Applicative
 import Control.Monad
 import Data.Attoparsec.Text
 import Data.IntMap.Strict           ( IntMap )
 import qualified Data.IntMap.Strict as IntMap
-import qualified Data.List          as List
-import Data.Maybe                   ( catMaybes, isJust, fromJust )
+import Data.Maybe                   ( catMaybes, isJust, fromJust  )
 import qualified Data.Text.IO       as TIO
 import Numeric.Natural              ( Natural )
 
 import System.Environment           ( getArgs )
-
-import Debug.Trace
 
 main :: IO ()
 main = do
@@ -21,7 +19,7 @@ main = do
         []                -> putStrLn "Expecting a path to an input file"
         (inputFilePath:_) -> do
             blueprints <- readInput (parseBlueprints <* endOfInput) inputFilePath
-            mapM_ (\(i,bp) -> print $ runBlueprint bp) (IntMap.toList blueprints)
+            print $ IntMap.foldlWithKey' (\acc i bp -> acc + (i * fromIntegral (runBlueprint bp))) 0 blueprints -- (\(i,bp) acc -> acc + (fromIntegral i * fromIntegral $ runBlueprint bp)) 0 (IntMap.toList blueprints)
 
     where
         readInput :: Parser a -> FilePath -> IO a
@@ -104,18 +102,18 @@ canBuildGeodeRobot MkBluePrint{..} MkResources{..} = geodeRobotOreReq <= ore && 
 
 
 transition :: State -> [State]
-transition state@MkState{..} = [state{resources=newResources, prevResources=resources}] <> candidates
+transition state@MkState{..}
+    | isJust buildGeodeRobot    = [fromJust $ buildGeodeRobot]
+    | otherwise                 = [state{resources=newResources, prevResources=resources}] <> catMaybes [buildObsidianRobot, buildClayRobot, buildOreRobot]
     where
-        candidates = catMaybes [buildGeodeRobot, buildObsidianRobot, buildClayRobot, buildOreRobot]
-
         ensure :: Bool -> Maybe ()
         ensure  = guard
 
         newResources = let MkResources{..} = resources
-                        in resources{ ore = ore + fromIntegral oreRobots
-                                    , clay = clay + fromIntegral clayRobots
+                        in resources{ ore      = ore      + fromIntegral oreRobots
+                                    , clay     = clay     + fromIntegral clayRobots
                                     , obsidian = obsidian + fromIntegral obsidianRobots
-                                    , geode = geode + fromIntegral geodeRobots
+                                    , geode    = geode    + fromIntegral geodeRobots
                                     }
 
         buildOreRobot :: Maybe State
@@ -129,39 +127,39 @@ transition state@MkState{..} = [state{resources=newResources, prevResources=reso
                     ensure $ fromIntegral oreRobots < maximum [ oreRobotOreReq, clayRobotOreReq, obsidianRobotOreReq, geodeRobotOreReq ]
 
                     pure $ state { oreRobots     = oreRobots + 1
-                                , resources     = newResources{ore = ore newResources - oreRobotOreReq }
-                                , prevResources = resources
-                                }
+                                 , resources     = newResources{ore = ore newResources - oreRobotOreReq }
+                                 , prevResources = resources
+                                 }
 
         buildClayRobot :: Maybe State
         buildClayRobot 
-            = if not $ canBuildClayRobot blueprint resources && not (canBuildClayRobot blueprint prevResources)
+            = if not $ canBuildClayRobot blueprint resources
                 then Nothing 
                 else do
                     let MkBluePrint{..} = blueprint
                     -- There's no point in building more clay robots than the maximum cost for one
                     -- since we can only ever build one robot per turn.
-                    --ensure $ fromIntegral clayRobots <= obsidianRobotClayReq
+                    ensure $ fromIntegral clayRobots < obsidianRobotClayReq
 
-                    pure $ state { clayRobots = clayRobots + 1
-                                , resources = newResources{ore = ore newResources - clayRobotOreReq}
-                                , prevResources = resources
-                                }
+                    pure $ state { clayRobots    = clayRobots + 1
+                                 , resources     = newResources{ore = ore newResources - clayRobotOreReq}
+                                 , prevResources = resources
+                                 }
 
         buildObsidianRobot :: Maybe State
         buildObsidianRobot 
-            = if not $ canBuildObsidianRobot blueprint resources && not (canBuildObsidianRobot blueprint prevResources)
+            = if not $ canBuildObsidianRobot blueprint resources
                 then Nothing
                 else do
                     let MkBluePrint{..} = blueprint
                     -- There's no point in building more obsidian robots than the maximum cost for one
                     -- since we can only ever build one robot per turn.
-                    -- ensure $ fromIntegral obsidianRobots < geodeRobotObsidianReq
+                    ensure $ fromIntegral obsidianRobots < geodeRobotObsidianReq
 
                     pure $ state { obsidianRobots = obsidianRobots + 1
-                                , resources = newResources { ore = ore newResources - obsidianRobotOreReq
-                                                            , clay = clay newResources - obsidianRobotClayReq 
-                                                            }
+                                , resources = newResources { ore  = ore newResources  - obsidianRobotOreReq
+                                                           , clay = clay newResources - obsidianRobotClayReq 
+                                                           }
                                 , prevResources = resources
                                 }
 
@@ -171,23 +169,26 @@ transition state@MkState{..} = [state{resources=newResources, prevResources=reso
                 then Nothing
                 else do
                     pure $ state { geodeRobots = geodeRobots + 1
-                                , resources = newResources { ore = ore newResources - geodeRobotOreReq blueprint
+                                 , resources = newResources { ore      = ore newResources      - geodeRobotOreReq blueprint
                                                             , obsidian = obsidian newResources - geodeRobotObsidianReq blueprint
                                                             }
-                                , prevResources = resources
-                                }
+                                 , prevResources = resources
+                                 }
 
 
 runBlueprint :: Blueprint -> AmountOf Geode
-runBlueprint bp = mostGeode $ go 24 [initialState bp] 
+runBlueprint bp = most geode $ go 24 [initialState bp] 
     where
-        mostGeode :: [State] -> AmountOf Geode
-        mostGeode states 
-            | null states = error "There should be at least one state"
-            | otherwise   = maximum $ fmap (geode . resources) states
+        most :: (Resources -> AmountOf a) -> [State] -> AmountOf a
+        most get states 
+            | null states = 0
+            | otherwise   = maximum $ fmap (get . resources) states
+        
 
         go :: Int -> [State] -> [State]
         go 0 states     = states
-        go nstep states = let newstates = concat $ transition <$> states
-                           in go (nstep - 1) newstates
-            --traceShow nstep $ go (nstep - 1) $ concatMap transition states
+        go nstep states = let newstates  = concat $ transition <$> states
+                              maxObs     = most obsidian newstates
+                              maxGeodes  = most geode newstates
+                              newstates' = filter (\s -> geode (resources s) == maxGeodes || obsidian (resources s) == maxObs ) newstates
+                           in go (nstep - 1) newstates'
