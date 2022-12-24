@@ -147,3 +147,10 @@ executable day23
     import:           common-options
     main-is:          Day23.hs
     hs-source-dirs:   day23
+
+executable day24
+    import:           common-options
+    main-is:          Day24.hs
+    hs-source-dirs:   day24
+    build-depends:    unordered-containers,
+                      hashable
