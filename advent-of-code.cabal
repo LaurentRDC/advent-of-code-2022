@@ -154,3 +154,8 @@ executable day24
     hs-source-dirs:   day24
     build-depends:    unordered-containers,
                       hashable
+
+executable day25
+    import:           common-options
+    main-is:          Day25.hs
+    hs-source-dirs:   day25
